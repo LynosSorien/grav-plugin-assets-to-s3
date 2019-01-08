@@ -1,0 +1,14 @@
+# Upload To S3 Plugin
+
+The **Upload to S3** Plugin is designed for [Grav CMS](http://github.com/getgrav/grav) and automatically uploads assets to S3, change the variables values on markdown pages to point to S3 url and adds new javascript that change thumbnail and view pointers to S3 url. 
+
+## Description
+
+On administration page there are the configurable values.
+
+The simple values to make it works correctly are:
+ * **key:** The key of the S3.
+ * **secret:** The secret linked to key of the S3.
+ * **bucket:** The bucket of the S3.
+ * **region:** The region where whe have our S3.
+

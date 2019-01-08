@@ -1,0 +1,45 @@
+name: Assets to S3
+version: 1.0.0
+description: Automatically changes assets url to S3, and uploads this.
+icon: clock-o
+author:
+  name: David Jorquera i Abellan
+  email: jorqueraabellandavid@gmail.com
+  url: -
+keywords: plugin, assets-to-s3, children, frontmatter
+
+dependencies:
+    - { name: admin, version: '>=1.2.3' }
+
+form:
+  validation: strict
+  fields:
+    enabled:
+      type: toggle
+      label: Plugin status
+      highlight: 1
+      default: 0
+      options:
+        1: Enabled
+        0: Disabled
+      validate:
+        type: bool
+    key:
+      type: text
+      label: 'Key'
+    secret:
+      type: text
+      label: 'Secret'
+    bucket:
+      type: text
+      label: 'Bucket'
+    bucket_profile:
+      type: text
+      label: 'Bucket profile (folder)'
+    region:
+      type: text
+      label: 'Region'
+    version:
+      type: text
+      label: 'Version'
+      default: '2006-03-01'
