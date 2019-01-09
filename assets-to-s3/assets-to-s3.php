@@ -5,12 +5,10 @@ use Grav\Common\Plugin;
 use Grav\Common\Uri;
 use Grav\Common\Asset;
 use RocketTheme\Toolbox\Event\Event;
-//use Aws\Common\Aws;
-//use Aws\Sdk\Aws;
 use Aws\S3\S3Client;
 
 /**
- * Class AutoChildrenPlugin
+ * Class AssetsToS3Plugin
  * @package Grav\Plugin
  */
 class AssetsToS3Plugin extends Plugin
@@ -35,7 +33,6 @@ class AssetsToS3Plugin extends Plugin
 
     public function onPluginsInitialized()
     {
-        /** @var Uri $uri */
         $uri = $this->grav['uri'];
         $route = $this->config->get('plugins.admin.route');
 
@@ -57,7 +54,6 @@ class AssetsToS3Plugin extends Plugin
         if ($page instanceof \Grav\Common\Page\Page) {
           $config = $this->grav['config']->get('plugins.assets-to-s3');
           $testing = '';
-          //$aws = Aws::factory(
           $s3 = new S3Client(
             array(
               'region' => $config['region'],
@@ -68,59 +64,45 @@ class AssetsToS3Plugin extends Plugin
               )
             )
           );
-          $bucket = $config['bucket'];
           $header = (array)$page->value('header');
-          //$header = $this->decompile($header, $aws->get('S3'), $bucket);
-          $header = $this->decompile($header, $s3, $bucket, $config['bucket_profile']);
+          $header = $this->decompile($header, $s3, array());
           $page->header($header);
         }
     }
 
-    public function decompile($list, $s3, $bucket, $profile) {
+    public function decompile($list, $s3, $uploadedAssets) {
+      $config = $this->grav['config']->get('plugins.assets-to-s3');
+      $assetsKeys = $config['asset_attributes'];
+      $listKeys = $config['list_attributes'];
+      $bucket = $config['bucket'];
+      $profile = $config['bucket_profile'];
       foreach ($list as $key => $value) {
-        if ($key === 'image') {
-            $list[$key] = $this->changeAsset((array)$list[$key], $s3, $bucket, $profile);
-        } else if ($key === 'background') {
-            $list[$key] = $this->changeAsset((array)$list[$key], $s3, $bucket, $profile);
-        } else if ($key === 'video') {
-            $list[$key] = $this->changeAsset((array)$list[$key], $s3, $bucket, $profile);
-        } else if ($key === 'asset') {
-            $list[$key] = $this->changeAsset((array)$list[$key], $s3, $bucket, $profile);
-        } else if ($key === 'image360') {
-            $list[$key] = $this->changeAsset((array)$list[$key], $s3, $bucket, $profile);
-        } else if ($key === 'asset360') {
-            $list[$key] = $this->changeAsset((array)$list[$key], $s3, $bucket, $profile);
-        } else if ($key === 'images') {
-            $list[$key] = $this->decompileList((array)$list[$key], $s3, $bucket, $profile);
-        } else if ($key === 'assets') {
-            $list[$key] = $this->decompileList((array)$list[$key], $s3, $bucket, $profile);
-        } else if ($key === 'list') {
-            $list[$key] = $this->decompileList((array)$list[$key], $s3, $bucket, $profile);
-        } else if ($key === 'panels') {
-            $list[$key] = $this->decompileList((array)$list[$key], $s3, $bucket, $profile);
+        if (in_array($key, $assetsKeys)) {
+          $list[$key] = $this->changeAsset((array)$list[$key], $s3, $bucket, $profile, $uploadedAssets);
+        } else if (in_array($key, $listKeys)) {
+          $list[$key] = $this->decompileList((array)$list[$key], $s3, $uploadedAssets);
         }
       }
       return $list;
     }
 
-    public function decompileList($list, $s3, $bucket, $profile) {
+    public function decompileList($list, $s3, $uploadedAssets) {
       $newList = array();
       foreach($list as $item) {
-        array_push($newList, $this->decompile((array)$item, $s3, $bucket, $profile));
+        array_push($newList, $this->decompile((array)$item, $s3, $uploadedAssets));
       }
       return $newList;
     }
 
-    public function changeAsset($asset, $s3, $bucket, $profile) {
+    public function changeAsset($asset, $s3, $bucket, $profile, $uploadedAssets) {
       $staticUrl = 'assets/uploads/';
       $newAsset = array();
       foreach($asset as $key => $value) {
         if (strpos($key, $staticUrl) === 0){
-          $newUrl = $this->uploadToS3($asset[$key]['path'], $s3, $bucket, $profile);
+          $newUrl = $this->uploadToS3($asset[$key]['path'], $s3, $bucket, $profile, $uploadedAssets);
           $path = str_replace($staticUrl, $newUrl, $asset[$key]['path']);
           $asset[$key]['path'] = $path;
           $newAsset[$path] = $asset[$key];
-          $newAsset[$path]['replaced'] = 'This asset has been replaced :D';
         } else {
           $newAsset = $asset;
         }
@@ -128,20 +110,25 @@ class AssetsToS3Plugin extends Plugin
       return $newAsset;
     }
 
-    public function uploadToS3($path, $s3, $bucket, $profile) {
+    public function uploadToS3($path, $s3, $bucket, $profile, $uploadedAssets) {
       // Put functionallity to upload asset (path contains path+filename) to S3.
       $pos = strrpos($path, '/');
       $key = $pos === false ? $path : substr($path, $pos + 1);
-      $result = $s3->putObject(array(
+      if (!in_array($key, $uploadedAssets)) {
+        $result = $s3->putObject(array(
+            'Bucket' => $bucket,
+            'Key' => $profile.'/'.$key,
+            'SourceFile' => $path
+        ));
+        $s3->waitUntil('ObjectExists', array(
           'Bucket' => $bucket,
-          'Key' => $profile.'/'.$key,
-          'SourceFile' => $path
-      ));
-      $s3->waitUntil('ObjectExists', array(
-        'Bucket' => $bucket,
-        'Key' => $profile.'/'.$key
-      ));
-      
+          'Key' => $profile.'/'.$key
+        ));
+
+        unlink($path);
+        array_push($uploadedAssets, $key);
+      }
+
       return $profile && $profile !== '' ? 'http://'.$bucket.'.s3.amazonaws.com/'.$profile.'/' : 'http://'.$bucket.'.s3.amazonaws.com/';
     }
 }

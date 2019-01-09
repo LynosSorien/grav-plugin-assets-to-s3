@@ -1,12 +1,12 @@
 name: Assets to S3
-version: 1.0.0
+version: 0.2.1
 description: Automatically changes assets url to S3, and uploads this.
-icon: clock-o
+icon: empire
 author:
   name: David Jorquera i Abellan
   email: jorqueraabellandavid@gmail.com
   url: -
-keywords: plugin, assets-to-s3, children, frontmatter
+keywords: plugin, assets-to-s3, frontmatter, s3, admin
 
 dependencies:
     - { name: admin, version: '>=1.2.3' }
@@ -43,3 +43,15 @@ form:
       type: text
       label: 'Version'
       default: '2006-03-01'
+    asset_attributes:
+      type: selectize
+      label: 'Assets attributes'
+      multiple: true
+      validate:
+        type: commalist
+    list_attributes:
+      type: selectize
+      label: 'List attributes (that can contain assets)'
+      multiple: true
+      validate:
+        type: commalist
