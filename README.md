@@ -1,12 +1,19 @@
-# grav-plugin-assets-to-s3
-Plugin for Grav CMS to upload contents on assets/upload to Amazon S3, this allow to split heavy contents (such as images and videos) to S3 and normal contents on local server.
+# Upload To S3 Plugin
 
-This puts automatically all assets to Amazon S3 (configurated via plugin administration config page). Also changes the assets variable names of the markdown page to S3 direction.
+The **Upload to S3** Plugin is designed for [Grav CMS](http://github.com/getgrav/grav) and automatically uploads assets to S3, change the variables values on markdown pages to point to S3 url and adds new javascript that change thumbnail and view pointers to S3 url.
+This uploads a designed assets (defined by attribute names) and deletes the uploaded asset from local server.
 
-This have a javascript that will be executed on administration pages in order to change the url of the thumbnail images (Grav by default search on local server, now it will be changed to go to S3 remote direction).
+## Description
+On administration page there are the configurable values.
+
+The simple values to make it works correctly are:
+ * **key:** The key of the S3.
+ * **secret:** The secret linked to key of the S3.
+ * **bucket:** The bucket of the S3.
+ * **region:** The region where whe have our S3.
+ * **asset_attributes:** The attribute names that are assets to upload to S3 (comma separated).
+ * **list_attributes:** The attributes that are lists that can contain attributes that are assets to upload to S3 (comma separated).
 
 ## How to install
-Download and put assets-to-s3 folder inside of user/plugins.
+Download the project and put all files inside /grav-cms-directory-path/user/plugins/assets-to-s3/* .
 
-## Configuration
-This plugin can be configurated using Grav plugin configuration page.
