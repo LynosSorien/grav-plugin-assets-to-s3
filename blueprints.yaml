@@ -1,5 +1,5 @@
 name: Assets to S3
-version: 0.2.1
+version: 0.3.0
 description: Automatically changes assets url to S3, and uploads this.
 icon: empire
 author:
@@ -43,6 +43,14 @@ form:
       type: text
       label: 'Version'
       default: '2006-03-01'
+    auto_generate_names:
+      type: toggle
+      label: Authomatically generate unique names for assets
+      highlight: 1
+      default: 0
+      options:
+        1: Yes
+        0: No
     asset_attributes:
       type: selectize
       label: 'Assets attributes'

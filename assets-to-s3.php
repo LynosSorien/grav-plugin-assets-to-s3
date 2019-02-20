@@ -65,12 +65,13 @@ class AssetsToS3Plugin extends Plugin
             )
           );
           $header = (array)$page->value('header');
-          $header = $this->decompile($header, $s3, array());
+          $uploadedAssets = array();
+          $header = $this->decompile($header, $s3, $uploadedAssets);
           $page->header($header);
         }
     }
 
-    public function decompile($list, $s3, $uploadedAssets) {
+    public function decompile($list, $s3, & $uploadedAssets) {
       $config = $this->grav['config']->get('plugins.assets-to-s3');
       $assetsKeys = $config['asset_attributes'];
       $listKeys = $config['list_attributes'];
@@ -86,7 +87,7 @@ class AssetsToS3Plugin extends Plugin
       return $list;
     }
 
-    public function decompileList($list, $s3, $uploadedAssets) {
+    public function decompileList($list, $s3, & $uploadedAssets) {
       $newList = array();
       foreach($list as $item) {
         array_push($newList, $this->decompile((array)$item, $s3, $uploadedAssets));
@@ -94,7 +95,7 @@ class AssetsToS3Plugin extends Plugin
       return $newList;
     }
 
-    public function changeAsset($asset, $s3, $bucket, $profile, $uploadedAssets) {
+    public function changeAsset($asset, $s3, $bucket, $profile, & $uploadedAssets) {
       $staticUrl = 'assets/uploads/';
       $newAsset = array();
       foreach($asset as $key => $value) {
@@ -110,22 +111,32 @@ class AssetsToS3Plugin extends Plugin
       return $newAsset;
     }
 
-    public function uploadToS3($path, $s3, $bucket, $profile, $uploadedAssets) {
+    public function uploadToS3($path, $s3, $bucket, $profile, & $uploadedAssets) {
       // Put functionallity to upload asset (path contains path+filename) to S3.
+      $config = $this->grav['config']->get('plugins.assets-to-s3');
+      $autoGenerate = $config['auto_generate_names'];
+
       $pos = strrpos($path, '/');
       $key = $pos === false ? $path : substr($path, $pos + 1);
-      if (!in_array($key, $uploadedAssets)) {
-        $result = $s3->putObject(array(
-            'Bucket' => $bucket,
-            'Key' => $profile.'/'.$key,
-            'SourceFile' => $path
-        ));
-        $s3->waitUntil('ObjectExists', array(
-          'Bucket' => $bucket,
-          'Key' => $profile.'/'.$key
-        ));
 
-        unlink($path);
+      if ($autoGenerate && $autoGenerate  == 1) {
+        $key = microtime(true).'_'.$key;
+      }
+      if (!in_array($key, $uploadedAssets)) {
+        try {
+          $result = $s3->putObject(array(
+              'Bucket' => $bucket,
+              'Key' => $profile.'/'.$key,
+              'SourceFile' => $path
+          ));
+          $s3->waitUntil('ObjectExists', array(
+            'Bucket' => $bucket,
+            'Key' => $profile.'/'.$key
+          ));
+          unlink($path);
+        } catch (Exception $e) {
+          echo 'Error while trying to upload file to S3 and delete the file from assets: ',  $e->getMessage(), "\n";
+        }
         array_push($uploadedAssets, $key);
       }
 

@@ -1,3 +1,15 @@
+# v0.3.0
+##  02/20/2019
+
+1. [](#new)
+    * Added functionallity to authomatically generate name when uploading folder, this is used to accept files with same name and don't be overwritten.
+
+# v0.2.2
+##  02/18/2019
+
+1. [](#new)
+    * Solved problem: When uploading same image on different properties it shows an error (partially solved on 0.2.1 for lists).
+
 # v0.2.1
 ##  01/09/2019
 
