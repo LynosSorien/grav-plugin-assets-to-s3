@@ -100,8 +100,10 @@ class AssetsToS3Plugin extends Plugin
       $newAsset = array();
       foreach($asset as $key => $value) {
         if (strpos($key, $staticUrl) === 0){
-          $newUrl = $this->uploadToS3($asset[$key]['path'], $s3, $bucket, $profile, $uploadedAssets);
-          $path = str_replace($staticUrl, $newUrl, $asset[$key]['path']);
+          $uploadReturn = $this->uploadToS3($asset[$key]['path'], $s3, $bucket, $profile, $uploadedAssets);
+          $newUrl = $uploadReturn['url'];
+          //$path = str_replace($staticUrl, $newUrl, $asset[$key]['path']);
+          $path = $newUrl.$uploadReturn['key'];
           $asset[$key]['path'] = $path;
           $newAsset[$path] = $asset[$key];
         } else {
@@ -139,7 +141,10 @@ class AssetsToS3Plugin extends Plugin
         }
         array_push($uploadedAssets, $key);
       }
-
-      return $profile && $profile !== '' ? 'http://'.$bucket.'.s3.amazonaws.com/'.$profile.'/' : 'http://'.$bucket.'.s3.amazonaws.com/';
+      $returnValue = array(
+        'url' => $profile && $profile !== '' ? 'http://'.$bucket.'.s3.amazonaws.com/'.$profile.'/' : 'http://'.$bucket.'.s3.amazonaws.com/',
+        'key' => $key
+      );
+      return $returnValue;
     }
 }

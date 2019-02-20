@@ -1,3 +1,9 @@
+# v0.3.1
+##  02/20/2019
+
+1. [](#new)
+    * Solved error, when uploading with auto-generated names the key doesn't change.
+
 # v0.3.0
 ##  02/20/2019
 
