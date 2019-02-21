@@ -142,7 +142,7 @@ class AssetsToS3Plugin extends Plugin
         array_push($uploadedAssets, $key);
       }
       $returnValue = array(
-        'url' => $profile && $profile !== '' ? 'http://'.$bucket.'.s3.amazonaws.com/'.$profile.'/' : 'http://'.$bucket.'.s3.amazonaws.com/',
+        'url' => $profile && $profile !== '' ? 'https://'.$bucket.'.s3.amazonaws.com/'.$profile.'/' : 'https://'.$bucket.'.s3.amazonaws.com/',
         'key' => $key
       );
       return $returnValue;

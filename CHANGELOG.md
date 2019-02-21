@@ -1,3 +1,9 @@
+# v0.4.0
+##  02/21/2019
+
+1. [](#new)
+    * Changed http protocol to https.
+
 # v0.3.1
 ##  02/20/2019
 

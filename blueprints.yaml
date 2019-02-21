@@ -1,5 +1,5 @@
 name: Assets to S3
-version: 0.3.1
+version: 0.4.0
 description: Automatically changes assets url to S3, and uploads this.
 icon: empire
 author:
